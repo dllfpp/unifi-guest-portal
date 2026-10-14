@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+
+<title>Controller UniFi · Configurazione del portale</title>
+<link rel="stylesheet" href="../../stile.css">
+</head>
+<body>
+<main class="pagina larga">
+  <header class="testata">
+    <svg class="icona marchio" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h.01"/><path d="M2 8.82a15 15 0 0 1 20 0"/><path d="M5 12.86a10 10 0 0 1 14 0"/><path d="M8.5 16.43a5 5 0 0 1 7 0"/></svg>
+    <div><p class="rete">Configurazione del portale</p><p class="sottotitolo">Passo 1 di 7</p></div>
+  </header>
+  <div class="progresso" aria-hidden="true"><span style="width: 14%"></span></div>
+  <section class="scheda wizard" aria-labelledby="titolo">
+    <h1 id="titolo">Controller UniFi</h1>
+    <p class="testo-principale">Il controller UniFi Network che gestisce la Wi-Fi ospiti, e un account locale che il portale usa per approvare gli ospiti.</p>
+    
+    
+    <ol class="istruzioni"><li>In UniFi apri <b>Settings › Admins &amp; Users</b> (su UniFi OS: <b>Control Plane › Admins &amp; Users</b>) e aggiungi un amministratore per il portale.</li><li>Deve essere un account <b>locale</b> (non un account UI.com), senza autenticazione a due fattori, con un ruolo che gestisce l’applicazione Network (basta Site Admin).</li></ol><form class="modulo" method="get" action="sito.html">
+    <label class="campo" for="url">Indirizzo del controller</label>
+    <input class="testo" id="url" name="url" type="url" value="" autocomplete="off" spellcheck="false" autocapitalize="off" aria-describedby="url-aiuto" inputmode="url">
+    <p class="aiuto" id="url-aiuto">Per esempio https://192.168.1.10:8443 per una Network Application installata a parte, oppure https://192.168.1.1 per una console UniFi OS (UDM, UCG, Cloud Key). Il certificato autofirmato va bene.</p>
+    <label class="campo" for="utente">Nome utente</label>
+    <input class="testo" id="utente" name="utente" type="text" value="" autocomplete="username" spellcheck="false" autocapitalize="off">
+    
+    <label class="campo" for="password">Password</label>
+    <input class="testo" id="password" name="password" type="password" value="" autocomplete="new-password" spellcheck="false" autocapitalize="off">
+    <div class="azioni">
+      <button class="bottone" type="submit">Continua</button></div></form>
+  </section>
+  <footer class="firma"><a href="https://buymeacoffee.com/dllfpp">Made with love ❤️ - DLLFPP</a></footer>
+</main>
+</body>
+</html>

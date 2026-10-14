@@ -1,0 +1,21 @@
+services:
+  portale:
+    build: .
+    image: unifi-guest-portal:latest
+    container_name: unifi-guest-portal
+    restart: unless-stopped
+    # Facoltativo: senza .env la configurazione si fa dal wizard al primo avvio.
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      TZ: Europe/Rome
+    # UniFi sends guests to port 80 of the External Portal Server: keep 80 on the host side.
+    ports:
+      - "80:8097"
+    volumes:
+      - data:/data
+
+volumes:
+  data:
+    name: unifi-guest-portal_data
