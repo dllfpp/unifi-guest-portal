@@ -120,6 +120,9 @@ async function autorizza(c, ore) {
 async function revoca(mac) {
   try { await api('POST', `/api/s/${CFG.site}/cmd/stamgr`, { cmd: 'unauthorize-guest', mac: macUnifi(mac) }); }
   catch (e) { throw new Error('revoca: ' + e.message); }
+  // Le connessioni già aperte (per esempio una VPN in UDP) possono sopravvivere alla revoca: si sgancia il
+  // client dal Wi-Fi, che si ricollega e trova il portale. Se non è collegato il controller dà errore: va bene.
+  try { await api('POST', `/api/s/${CFG.site}/cmd/stamgr`, { cmd: 'kick-sta', mac: macUnifi(mac) }); } catch { /* non collegato */ }
 }
 
 module.exports = { cliente, autorizza, revoca, richiestaA, accedi, apiCon, variante, macUnifi, CFG };
