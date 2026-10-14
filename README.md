@@ -154,20 +154,33 @@ Preview the welcome page with fake data (no state, no controller calls):
 
 ## Admin panel
 
-`/admin` on the same address shows the **connected guests**, the requests **waiting** and the **history** of the
-last 30 days. For each connected guest: **+1 hour**, **−1 hour**, a **new duration from now** (1–720 hours) and
-**Revoke** (after a confirmation page). Extending authorizes the device again for the time left; shortening
-revokes and authorizes again for the shorter time, so the device may reconnect once. The Telegram message of
-that request is updated too. Server-side pages, no JavaScript, same style as the portal.
+Open `http://<docker-host>/admin` (same address and port as the portal) and sign in with the admin password.
+The panel shows:
 
-Protection, since the panel answers on the port the guests can reach:
+- **Connected guests**: name, device, MAC, access point, expiry and time left. For each one: **+1 hour**,
+  **−1 hour**, a **new duration from now** (1–720 hours) and **Revoke** (after a confirmation page).
+- **Waiting for approval**: requests nobody has answered yet.
+- **History**: every request of the last 30 days with its outcome (approved, rejected, revoked, ended, no answer).
 
-- **password**: set it in the wizard (*Rules* step, only an scrypt hash is saved as `ADMIN_HASH`) or with
-  `ADMIN_PASS`; without one the panel is off. At most 10 wrong passwords every 10 minutes;
-- **session** cookie `HttpOnly`, `SameSite=Strict`, 8 hours; forms accepted only from the same origin;
-- **networks**: the addresses of guest devices are always refused (UniFi does not pass the guest IP in the redirect, so the portal keeps the
-  address each request came from); with `ADMIN_ALLOW` (for example
-  `192.168.1.0/24`) only those networks can open it. Set it when guests and LAN share a subnet.
+How the actions reach the controller:
+
+- **Extend** authorizes the device again for the time left plus the extra time (`authorize-guest`).
+- **Shorten** revokes and authorizes again for the shorter time, so the device may reconnect once.
+- **Revoke** runs `unauthorize-guest` and then `kick-sta`: the access point only blocks new connections, so
+  without the kick a tunnel already open (a VPN over UDP, for example) would keep working. The device
+  reconnects by itself and finds the portal again.
+- The Telegram message of that request is updated too.
+
+Server-side pages, no JavaScript, same style as the portal. Protection, since the panel answers on the port the
+guests can reach:
+
+- **Password**: set it in the wizard (*Rules* step; only an scrypt hash is saved, as `ADMIN_HASH`) or with
+  `ADMIN_PASS`. Without one the panel is off. At most 10 wrong passwords every 10 minutes.
+- **Session**: cookie `HttpOnly`, `SameSite=Strict`, 8 hours; forms are accepted only from the same origin.
+- **Networks**: guest devices that are waiting or connected are always refused (UniFi does not pass the guest
+  IP in the redirect, so the portal keeps the address each request came from). With `ADMIN_ALLOW`, for example
+  `192.168.1.0/24`, only those networks can open the panel: set it, so guests are kept out even after their
+  access ends.
 
 ## Tests and demo
 
@@ -186,8 +199,11 @@ recorded from the real wizard running against the fake controller of the tests.
 - Against a real **UniFi Network Application 10.6** (self-hosted): login, wrong password, sites, WiFi networks,
   `authorize-guest` for a given number of hours (the controller reports the exact expiry), `unauthorize-guest`,
   lookup of an unknown device.
+- The **admin panel** against the same controller, with the portal running in Docker: sign-in, +1 hour,
+  −1 hour, new duration and revoke, each checked on the controller's own expiry, and the guest redirect and
+  request flow.
 - **Not yet tested**: a **UniFi OS** gateway or console such as a UCG Fiber (the login and the `/proxy/network`
-  prefix follow the documented API), and the redirect of a real access point. If something differs on your setup, the log shows the
+  prefix follow the documented API), the redirect of a real access point, and `kick-sta` on a real access point. If something differs on your setup, the log shows the
   parameters received (`parametri non validi …`): please open an issue with them.
 
 ## Notes and limits
