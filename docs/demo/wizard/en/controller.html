@@ -22,7 +22,7 @@
     <ol class="istruzioni"><li>In UniFi open <b>Settings › Admins &amp; Users</b> (on UniFi OS: <b>Control Plane › Admins &amp; Users</b>) and add an admin for the portal.</li><li>Make it a <b>local</b> account (not a UI.com account), without two-factor authentication, with a role that can manage the Network application (Site Admin is enough).</li></ol><form class="modulo" method="get" action="sito.html">
     <label class="campo" for="url">Controller address</label>
     <input class="testo" id="url" name="url" type="url" value="" autocomplete="off" spellcheck="false" autocapitalize="off" aria-describedby="url-aiuto" inputmode="url">
-    <p class="aiuto" id="url-aiuto">For example https://192.168.1.10:8443 for a self-hosted Network Application, or https://192.168.1.1 for a UniFi OS console (UDM, UCG, Cloud Key). A self-signed certificate is fine.</p>
+    <p class="aiuto" id="url-aiuto">A UniFi OS gateway or console (UCG Fiber, UCG Ultra, UDM, Cloud Key) answers on port 443: https://192.168.1.1. UniFi OS Server uses port 11443: https://192.168.1.10:11443. A self-hosted Network Application uses 8443: https://192.168.1.10:8443. A self-signed certificate is fine.</p>
     <label class="campo" for="utente">Username</label>
     <input class="testo" id="utente" name="utente" type="text" value="" autocomplete="username" spellcheck="false" autocapitalize="off">
     

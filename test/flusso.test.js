@@ -23,7 +23,7 @@ tg.invia = async (testo, bottoni) => { chiamate.push(['invia', testo, bottoni]);
 tg.modifica = async (id, testo, bottoni) => { chiamate.push(['modifica', testo, bottoni]); };
 tg.rispondi = async (id, testo) => { chiamate.push(['rispondi', testo]); };
 
-const { server, daParametri, bottone } = require('../src/server');
+const { server, daParametri, bottone, stato } = require('../src/server');
 
 const PARAMETRI = { id: 'aa:bb:cc:00:00:01', ap: '02:00:00:00:aa:01', t: '1791900000', url: 'http://neverssl.com/', ssid: 'GUEST-WIFI' };
 
@@ -56,6 +56,7 @@ test('richiesta → messaggio Telegram con bottoni → pagina di attesa', async 
   const r = await post('/richiesta', { ...PARAMETRI, nome: '<b>Guest</b>' });
   assert.equal(r.status, 303);
   id = new URL(r.headers.get('location'), base).searchParams.get('id');
+  assert.equal(stato.get(id).ip, '127.0.0.1', 'IP di provenienza salvato (UniFi non lo passa nel redirect)');
   const msg = chiamate.find(c => c[0] === 'invia');
   assert.match(msg[1], /&lt;b&gt;Guest&lt;\/b&gt;/, 'nome escapato');
   assert.match(msg[1], /iPhone · Apple · iOS/);

@@ -18,6 +18,8 @@ const stato = new Stato(path.join(DATA, 'stato.json'));
 const log = (...a) => console.log(new Date().toISOString(), ...a);
 
 const MAC = /^([0-9A-F]{2}-){5}[0-9A-F]{2}$/;
+// UniFi non mette l'IP del client nel redirect: si tiene quello da cui arriva la richiesta.
+const ipDi = req => String(req.socket.remoteAddress || '').replace(/^::ffff:/, '');
 const normMac = m => String(m || '').toUpperCase().replace(/:/g, '-');
 
 function invia(res, codice, html, extra = {}) {
@@ -171,6 +173,9 @@ function paginaRichiesta(r, lingua) {
 }
 const linguaRichiesta = (req, u) => linguaDa(req.headers['accept-language'], u.searchParams.get('lang'));
 
+// Pannello di amministrazione su /admin (vedi admin.js).
+const admin = require('./admin').creaAdmin({ stato, controller: unifi, tg, testoRichiesta, log });
+
 async function gestisci(req, res) {
   const u = new URL(req.url, 'http://portale');
   // Lingua dell'ospite dal browser (inglese predefinito, italiano se lo preferisce), ?lang=it|en per forzarla.
@@ -180,6 +185,7 @@ async function gestisci(req, res) {
     res.writeHead(200, { 'Content-Type': 'text/css; charset=utf-8', 'Cache-Control': 'max-age=300' });
     return res.end(CSS);
   }
+  if (await admin.gestisci(req, res, u, lingua, corpo)) return;
   if (req.method === 'GET' && u.pathname === '/salute') {
     res.writeHead(200, { 'Content-Type': 'application/json' });
     return res.end(JSON.stringify({ ok: true, chiuso: Boolean(stato.dati.chiuso), inAttesa: stato.tutte().filter(r => r.stato === 'attesa').length, telegram: tg.attivo, topic: tg.topic() }));
@@ -218,7 +224,7 @@ async function gestisci(req, res) {
     const puo = stato.puoChiedere(dati.mac);
     if (puo.richiesta) return vai(res, '/stato?id=' + puo.richiesta.id);
     if (puo.motivo === 'troppe') return invia(res, 429, pag({ stato: 'troppe' }));
-    const { r, errore } = await nuovaRichiesta(dati, p.nome);
+    const { r, errore } = await nuovaRichiesta({ ...dati, ip: ipDi(req) }, p.nome);
     return errore ? invia(res, 403, pag({ stato: 'errore', errore })) : vai(res, '/stato?id=' + r.id);
   }
   if (req.method === 'POST' && u.pathname === '/rinnova') {
@@ -229,7 +235,7 @@ async function gestisci(req, res) {
     if (puo.richiesta) return vai(res, '/stato?id=' + puo.richiesta.id);
     if (puo.motivo === 'troppe') return invia(res, 429, pag({ stato: 'troppe' }));
     const { mac, apMac, ssid, redirectUrl, nome } = vecchia;
-    const { r, errore } = await nuovaRichiesta({ mac, apMac, ssid, redirectUrl }, nome);
+    const { r, errore } = await nuovaRichiesta({ mac, apMac, ssid, redirectUrl, ip: ipDi(req) }, nome);
     return errore ? invia(res, 403, pag({ stato: 'errore', errore })) : vai(res, '/stato?id=' + r.id);
   }
   if (req.method === 'GET') {

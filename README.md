@@ -3,7 +3,8 @@
 An external captive portal for **Ubiquiti UniFi** guest Wi-Fi where every new device has to be
 **approved by the owner on Telegram**. The guest asks for access (name optional) and waits; the owner
 gets a message with the device details and taps **✅ 4 hours · ✅ 24 hours · ⏱ Hours… · ❌ Reject**, and can
-**⛔ Revoke** an approved device later. A pinned message with one button **opens or closes** the guest
+**⛔ Revoke** an approved device later; a password-protected **admin panel** lists connected guests and
+the history, and extends, shortens or revokes their access. A pinned message with one button **opens or closes** the guest
 Wi-Fi without touching the access points.
 
 **[Try the live demo →](https://dllfpp.github.io/unifi-guest-portal/)** (runs in your browser, with a simulated
@@ -11,8 +12,11 @@ controller and a simulated Telegram).
 
 Works with the **UniFi Network** application in both flavours, detected automatically:
 
-- **UniFi OS** consoles (UDM, UDR, UCG, Cloud Key Gen2+, UniFi OS Server): `https://<console>`;
+- **UniFi OS gateways and consoles** (UCG Fiber, UCG Ultra/Max, UDM, UDR, Cloud Key Gen2+): `https://<gateway>`, port **443**;
+- **UniFi OS Server** (self-hosted UniFi OS): `https://<host>:11443`;
 - **self-hosted Network Application** (Docker, Linux, Windows): `https://<host>:8443`.
+
+The controller address is the one you open in the browser, port included; the portal detects UniFi OS by itself.
 
 The same project exists for TP-Link Omada: [omada-guest-portal](https://github.com/dllfpp/omada-guest-portal).
 
@@ -148,10 +152,27 @@ docker logs -f unifi-guest-portal        # requests, approvals, button presses
 Preview the welcome page with fake data (no state, no controller calls):
 `/anteprima/benvenuto?nome=Guest&ore=4&secondi=90` (add `&lang=it` for Italian; at zero it moves to `/anteprima/terminata`).
 
+## Admin panel
+
+`/admin` on the same address shows the **connected guests**, the requests **waiting** and the **history** of the
+last 30 days. For each connected guest: **+1 hour**, **−1 hour**, a **new duration from now** (1–720 hours) and
+**Revoke** (after a confirmation page). Extending authorizes the device again for the time left; shortening
+revokes and authorizes again for the shorter time, so the device may reconnect once. The Telegram message of
+that request is updated too. Server-side pages, no JavaScript, same style as the portal.
+
+Protection, since the panel answers on the port the guests can reach:
+
+- **password**: set it in the wizard (*Rules* step, only an scrypt hash is saved as `ADMIN_HASH`) or with
+  `ADMIN_PASS`; without one the panel is off. At most 10 wrong passwords every 10 minutes;
+- **session** cookie `HttpOnly`, `SameSite=Strict`, 8 hours; forms accepted only from the same origin;
+- **networks**: the addresses of guest devices are always refused (UniFi does not pass the guest IP in the redirect, so the portal keeps the
+  address each request came from); with `ADMIN_ALLOW` (for example
+  `192.168.1.0/24`) only those networks can open it. Set it when guests and LAN share a subnet.
+
 ## Tests and demo
 
 ```sh
-node --test test/*.test.js   # portal flow, languages, Telegram topics, setup wizard and first start,
+node --test test/*.test.js   # portal flow, admin panel, languages, Telegram topics, setup wizard and first start,
                              # with a fake controller and a fake Telegram
 node demo/build.js           # rebuilds the static demo in docs/ (GitHub Pages)
 ```
@@ -165,8 +186,8 @@ recorded from the real wizard running against the fake controller of the tests.
 - Against a real **UniFi Network Application 10.6** (self-hosted): login, wrong password, sites, WiFi networks,
   `authorize-guest` for a given number of hours (the controller reports the exact expiry), `unauthorize-guest`,
   lookup of an unknown device.
-- **Not yet tested**: a **UniFi OS** console (the login and the `/proxy/network` prefix follow the documented
-  API), and the redirect of a real access point. If something differs on your setup, the log shows the
+- **Not yet tested**: a **UniFi OS** gateway or console such as a UCG Fiber (the login and the `/proxy/network`
+  prefix follow the documented API), and the redirect of a real access point. If something differs on your setup, the log shows the
   parameters received (`parametri non validi …`): please open an issue with them.
 
 ## Notes and limits
